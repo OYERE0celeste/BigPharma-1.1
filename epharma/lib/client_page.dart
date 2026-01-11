@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'home_page.dart';
 import 'article_page.dart';
+import 'commande_page.dart';
+import 'personnel_page.dart';
 
 class ClientPage extends StatefulWidget {
   const ClientPage({super.key});
@@ -23,7 +26,32 @@ class _ClientPageState extends State<ClientPage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
 
-        title: const Text('E-Pharma'),
+        titleSpacing: 0,
+        title: Tooltip(
+          message:
+              "Retourner à la page d'accueil", // texte qui apparaît au survol
+          child: TextButton(
+            style: ButtonStyle(
+              overlayColor: WidgetStateProperty.all(
+                Colors.transparent,
+              ), // supprime l'effet d'éclaircissement
+            ),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomePage()),
+              );
+            },
+            child: const Text(
+              "E-Pharma",
+              style: TextStyle(
+                color: Colors.white, // couleur du texte dans l’AppBar
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
         leading: PopupMenuButton<String>(
           icon: const Icon(Icons.menu),
           onSelected: (String value) {
@@ -45,6 +73,18 @@ class _ClientPageState extends State<ClientPage> {
                 MaterialPageRoute(builder: (context) => const ClientPage()),
               );
             }
+            if (value == "Gestion commandes") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CommandePage()),
+              );
+            }
+            if (value == "Gestion personnel") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PersonnelPage()),
+              );
+            }
           },
           itemBuilder: (context) => [
             const PopupMenuItem(
@@ -52,12 +92,15 @@ class _ClientPageState extends State<ClientPage> {
               child: Text("Gestion article"),
             ),
             const PopupMenuItem(
-              value: "Gestion client",
-              child: Text("Gestion client"),
+              value: "Gestion clientèle",
+              child: Text("Gestion clientèle"),
             ),
-            const PopupMenuItem(value: "C", child: Text("Menu Item 3")),
-            const PopupMenuItem(value: "D", child: Text("Menu Item 4")),
-            const PopupMenuItem(value: "E", child: Text("Menu Item 5")),
+            const PopupMenuItem(
+              value: "Gestion commandes", 
+              child: Text("Gestion commandes")),
+            const PopupMenuItem(
+              value: "Gestion personnel", 
+              child: Text("Gestion personnel")),
             const PopupMenuItem(value: "F", child: Text("Menu Item 6")),
           ],
         ),

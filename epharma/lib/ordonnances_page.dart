@@ -1,60 +1,55 @@
-import 'package:epharma/add_article.dart';
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
+import 'home_page.dart';
+import 'article_page.dart';
 import 'client_page.dart';
 
-class ArticlePage extends StatefulWidget {
-  const ArticlePage({super.key});
+class OrdonnancesPage extends StatefulWidget {
+  const OrdonnancesPage({super.key});
 
   //final String title;
 
   @override
-  State<ArticlePage> createState() => _ArticlePageState();
+  State<OrdonnancesPage> createState() => _OrdonnancesPageState();
 }
 
-class _ArticlePageState extends State<ArticlePage> {
+class _OrdonnancesPageState extends State<OrdonnancesPage> {
   /*void _incrementCounter() {
     setState(() {
 
     });
   }*/
 
-  final List<Map<String, dynamic>> _articles = [
-    {'id': 1, 'name': 'Article 1', 'price': 10.0},
-    {'id': 2, 'name': 'Article 2', 'price': 15.0},
-    {'id': 3, 'name': 'Article 3', 'price': 20.0},
-  ];
-
-  bool _showSearch = true;
-  final TextEditingController _searchController = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+
         titleSpacing: 0,
-        title: Row(
-          children: [
-            const Text('E-Pharma'),
-            Expanded(
-              child: !_showSearch
-                  ? Center(
-                      child: SizedBox(
-                        width: 200,
-                        child: TextField(
-                          controller: _searchController,
-                          autofocus: true,
-                          textAlign: TextAlign.left,
-                          decoration: const InputDecoration(
-                            hintText: 'Search...',
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ),
-                    )
-                  : const SizedBox.shrink(),
+        title: Tooltip(
+          message:
+              "Retourner à la page d'accueil", // texte qui apparaît au survol
+          child: TextButton(
+            style: ButtonStyle(
+              overlayColor: WidgetStateProperty.all(
+                Colors.transparent,
+              ), // supprime l'effet d'éclaircissement
             ),
-          ],
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomePage()),
+              );
+            },
+            child: const Text(
+              "E-Pharma",
+              style: TextStyle(
+                color: Colors.white, // couleur du texte dans l’AppBar
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ),
         leading: PopupMenuButton<String>(
           icon: const Icon(Icons.menu),
@@ -84,26 +79,19 @@ class _ArticlePageState extends State<ArticlePage> {
               child: Text("Gestion article"),
             ),
             const PopupMenuItem(
-              value: "Gestion client",
-              child: Text("Gestion client"),
+              value: "Gestion clientèle",
+              child: Text("Gestion clientèle"),
             ),
-            const PopupMenuItem(value: "C", child: Text("Menu Item 3")),
-            const PopupMenuItem(value: "D", child: Text("Menu Item 4")),
-            const PopupMenuItem(value: "E", child: Text("Menu Item 5")),
+            const PopupMenuItem(
+              value: "Gestion commandes", 
+              child: Text("Gestion commandes")),
+            const PopupMenuItem(
+              value: "Gestion personnel", 
+              child: Text("Gestion personnel")),
             const PopupMenuItem(value: "F", child: Text("Menu Item 6")),
           ],
         ),
-
         actions: [
-          IconButton(
-            icon: Icon(_showSearch ? Icons.search : Icons.close),
-            onPressed: () {
-              setState(() {
-                _showSearch = !_showSearch;
-              });
-            },
-          ),
-
           PopupMenuButton(
             icon: const Icon(Icons.notifications),
             itemBuilder: (context) => [
@@ -135,32 +123,13 @@ class _ArticlePageState extends State<ArticlePage> {
           ),
         ],
       ),
-      body: Row(
+      body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
-        //child: Column(
-        //mainAxisAlignment: .center,
-        //children: [const Text('Bienvenu sur la gestion des articles')],
-        //),
-        children: [
-          Expanded(
-            flex: 4,
-            child: ListView.builder(
-              itemCount: _articles.length,
-              itemBuilder: (context, index) {
-                final article = _articles[index];
-                return ListTile(
-                  title: Text(article['name']),
-                  subtitle: Text('Price: \$${article['price']}'),
-                );
-              },
-            ),
-          ),
-
-          Container(width: 1, color: const Color.fromARGB(255, 207, 207, 207)),
-
-          Expanded(flex: 4, child: const AddArticlePage()),
-        ],
+        child: Column(
+          mainAxisAlignment: .center,
+          children: [const Text('Bienvenu sur la gestion des ordonnances')],
+        ),
       ),
       /*floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
@@ -169,4 +138,4 @@ class _ArticlePageState extends State<ArticlePage> {
       ),*/
     );
   }
-}
+}*/

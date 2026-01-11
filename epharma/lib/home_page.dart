@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'article_page.dart';
 import 'client_page.dart';
+import 'commande_page.dart';
+import 'personnel_page.dart';
+import 'add_article.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,9 +24,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _counter = 0;
+  // int _counter = 0;
 
-  void _incrementCounter() {
+  /*void _incrementCounter() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below
@@ -32,7 +35,7 @@ class _HomePageState extends State<HomePage> {
       // called again, and so nothing would appear to happen.
       _counter++;
     });
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -42,16 +45,63 @@ class _HomePageState extends State<HomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
+
+    final List<Map<String, dynamic>> dashboardItems = [
+      {
+        "title": "Articles",
+        "icon": Icons.medical_services,
+        "page": const ArticlePage(),
+      },
+      {"title": "Clients", "icon": Icons.people, "page": const ClientPage()},
+      {
+        "title": "Ajouter Article",
+        "icon": Icons.add_box,
+        "page": const AddArticlePage(),
+      },
+      {
+        "title": "Notifications",
+        "icon": Icons.notifications,
+        "page": null, // exemple sans navigation
+      },
+      {"title": "Profil", "icon": Icons.account_circle, "page": null},
+    ];
+
     return Scaffold(
       appBar: AppBar(
         // TRY THIS: Try changing the color here to a specific color (to
         // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
         // change color while the other colors stay the same.
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         //title: Text(widget.title),
-        title: const Text('E-Pharma'),
+        titleSpacing: 0,
+        title: Tooltip(
+          message:
+              "Retourner à la page d'accueil", // texte qui apparaît au survol
+          child: TextButton(
+            style: ButtonStyle(
+              overlayColor: WidgetStateProperty.all(
+                Colors.transparent,
+              ), // supprime l'effet d'éclaircissement
+            ),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomePage()),
+              );
+            },
+            child: const Text(
+              "E-Pharma",
+              style: TextStyle(
+                color: Colors.white, // couleur du texte dans l’AppBar
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
         leading: PopupMenuButton<String>(
           icon: const Icon(Icons.menu),
           onSelected: (String value) {
@@ -73,6 +123,18 @@ class _HomePageState extends State<HomePage> {
                 MaterialPageRoute(builder: (context) => const ClientPage()),
               );
             }
+            if (value == "Gestion commandes") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CommandePage()),
+              );
+            }
+            if (value == "Gestion personnel") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PersonnelPage()),
+              );
+            }
           },
           itemBuilder: (context) => [
             const PopupMenuItem(
@@ -80,12 +142,17 @@ class _HomePageState extends State<HomePage> {
               child: Text("Gestion article"),
             ),
             const PopupMenuItem(
-              value: "Gestion client",
-              child: Text("Gestion client"),
+              value: "Gestion clientèle",
+              child: Text("Gestion clientèle"),
             ),
-            const PopupMenuItem(value: "C", child: Text("Menu Item 3")),
-            const PopupMenuItem(value: "D", child: Text("Menu Item 4")),
-            const PopupMenuItem(value: "E", child: Text("Menu Item 5")),
+            const PopupMenuItem(
+              value: "Gestion commandes",
+              child: Text("Gestion commandes"),
+            ),
+            const PopupMenuItem(
+              value: "Gestion personnel",
+              child: Text("Gestion personnel"),
+            ),
             const PopupMenuItem(value: "F", child: Text("Menu Item 6")),
           ],
         ),
@@ -125,38 +192,61 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, // nombre de colonnes
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.2, // proportion largeur/hauteur
+          ),
+          itemCount: dashboardItems.length,
+          itemBuilder: (context, index) {
+            final item = dashboardItems[index];
+            return GestureDetector(
+              onTap: () {
+                if (item["page"] != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => item["page"]),
+                  );
+                }
+              },
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(item["icon"], size: 50, color: Colors.blue),
+                    const SizedBox(height: 12),
+                    Text(
+                      item["title"],
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+    );
+  }
+}
+
+/* floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ),
     );
   }
-}
+}*/
