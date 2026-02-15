@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'home_page.dart';
+import 'pharmacy_dashboard_page.dart';
+import 'pharmacy_sales_page.dart';
+import 'pharmacy_products_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -29,9 +31,15 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
       ),
-      home: const HomePage(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const PharmacyDashboardPage(),
+        '/products': (context) => const PharmacyProductsPage(),
+        '/sales': (context) => const PharmacySalesPage(),
+      },
+      debugShowCheckedModeBanner: false,
     );
   }
 }
