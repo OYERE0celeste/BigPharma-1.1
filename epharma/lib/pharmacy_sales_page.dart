@@ -4,6 +4,8 @@ import 'app_colors.dart';
 import 'package:intl/intl.dart';
 import 'pharmacy_dashboard_page.dart';
 import 'pharmacy_products_page.dart';
+import 'pharmacy_clients_page.dart';
+import 'pharmacy_activity_register_page.dart';
 
 // ============================================================================
 // MODELS
@@ -1363,6 +1365,14 @@ class _PharmacySalesPageState extends State<PharmacySalesPage> {
               ),
               'Stock': () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const PharmacyProductsPage()),
+              ),
+              'Clients': () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PharmacyClientsPage()),
+              ),
+              'Activity': () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const PharmacyActivityRegisterPage(),
+                ),
               ),
             },
           ),

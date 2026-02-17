@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'app_sidebar.dart';
 import 'app_colors.dart';
 import 'pharmacy_sales_page.dart';
+import 'pharmacy_clients_page.dart';
+import 'pharmacy_activity_register_page.dart';
 // lightweight local formatting helpers (avoid external dependency)
 
 String formatDate(DateTime dt) =>
@@ -261,6 +263,14 @@ class _PharmacyProductsPageState extends State<PharmacyProductsPage> {
                   Navigator.of(context).popUntil((r) => r.isFirst),
               'Sales': () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const PharmacySalesPage()),
+              ),
+              'Clients': () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PharmacyClientsPage()),
+              ),
+              'Activity': () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const PharmacyActivityRegisterPage(),
+                ),
               ),
             },
           ),
@@ -765,7 +775,7 @@ class ProductDetailsPanel extends StatelessWidget {
         Expanded(
           child: ListView.separated(
             itemCount: product.lots.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            separatorBuilder: (_, _) => const SizedBox(height: 8),
             itemBuilder: (context, index) => LotCard(lot: product.lots[index]),
           ),
         ),

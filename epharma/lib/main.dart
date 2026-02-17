@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'pharmacy_dashboard_page.dart';
 import 'pharmacy_sales_page.dart';
 import 'pharmacy_products_page.dart';
+import 'pharmacy_clients_page.dart';
+import 'pharmacy_activity_register_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -38,6 +40,8 @@ class MyApp extends StatelessWidget {
         '/': (context) => const PharmacyDashboardPage(),
         '/products': (context) => const PharmacyProductsPage(),
         '/sales': (context) => const PharmacySalesPage(),
+        '/clients': (context) => const PharmacyClientsPage(),
+        '/activity': (context) => const PharmacyActivityRegisterPage(),
       },
       debugShowCheckedModeBanner: false,
     );

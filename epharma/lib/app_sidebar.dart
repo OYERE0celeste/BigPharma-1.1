@@ -68,9 +68,9 @@ class AppSidebar extends StatelessWidget {
                 ),
                 AppSidebarItem(
                   icon: Icons.local_pharmacy,
-                  label: 'Prescriptions',
-                  selected: selectedLabel == 'Prescriptions',
-                  onTap: callbacks?['Prescriptions'],
+                  label: 'Journal d\'activités',
+                  selected: selectedLabel == 'Activity',
+                  onTap: callbacks?['Activity'],
                 ),
                 AppSidebarItem(
                   icon: Icons.report,
