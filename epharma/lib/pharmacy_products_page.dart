@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'app_sidebar.dart';
 import 'app_colors.dart';
 import 'pharmacy_sales_page.dart';
 import 'pharmacy_clients_page.dart';
 import 'pharmacy_activity_register_page.dart';
-// lightweight local formatting helpers (avoid external dependency)
+import 'models/product_model.dart';
+import 'providers/product_provider.dart';
 
 String formatDate(DateTime dt) =>
     '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
@@ -16,129 +18,6 @@ String formatDate(DateTime dt) =>
 
 // colors are in app_colors.dart
 
-// ----------------------------- Models -----------------------------
-class Product {
-  final String id;
-  String name;
-  String category;
-  String description;
-  String supplier;
-  String barcode;
-  bool prescriptionRequired;
-  double purchasePrice;
-  double sellingPrice;
-  int lowStockThreshold;
-  List<Lot> lots;
-
-  Product({
-    required this.id,
-    required this.name,
-    required this.category,
-    this.description = '',
-    this.supplier = '',
-    this.barcode = '',
-    this.prescriptionRequired = false,
-    this.purchasePrice = 0.0,
-    this.sellingPrice = 0.0,
-    this.lowStockThreshold = 10,
-    this.lots = const [],
-  });
-
-  int get totalStock => lots.fold(0, (p, l) => p + l.quantity);
-
-  double get profitMargin => sellingPrice - purchasePrice;
-}
-
-class Lot {
-  final String lotNumber;
-  int quantity;
-  DateTime expiration;
-
-  Lot({
-    required this.lotNumber,
-    required this.quantity,
-    required this.expiration,
-  });
-
-  LotStatus get status {
-    final now = DateTime.now();
-    if (expiration.isBefore(now)) return LotStatus.expired;
-    if (expiration.isBefore(now.add(const Duration(days: 30)))) {
-      return LotStatus.nearExpiration;
-    }
-    return LotStatus.valid;
-  }
-}
-
-enum LotStatus { valid, nearExpiration, expired }
-
-enum ProductStatus { available, lowStock, expired }
-
-// ----------------------------- Mock Service -----------------------------
-class ProductService {
-  final List<Product> _products = [];
-
-  ProductService() {
-    // Populate dummy data
-    _products.addAll(
-      List.generate(25, (i) {
-        final id = 'P${1000 + i}';
-        final lots = <Lot>[];
-        // random-ish lots
-        for (var j = 0; j < (i % 3) + 1; j++) {
-          final exp = DateTime.now().add(
-            Duration(days: (30 * (j + 1)) - (i * 2)),
-          );
-          lots.add(
-            Lot(lotNumber: 'L${i}_$j', quantity: 10 + j * 5, expiration: exp),
-          );
-        }
-
-        return Product(
-          id: id,
-          name: 'Product $i',
-          category: i % 2 == 0 ? 'Analgesic' : 'Antibiotic',
-          description: 'Description for product $i',
-          supplier: 'Supplier ${(i % 4) + 1}',
-          barcode: 'BRC${100000 + i}',
-          prescriptionRequired: i % 5 == 0,
-          purchasePrice: 1.5 + i * 0.2,
-          sellingPrice: 2.5 + i * 0.3,
-          lowStockThreshold: 8 + (i % 5),
-          lots: lots,
-        );
-      }),
-    );
-  }
-
-  Future<List<Product>> getProducts() async {
-    // simulate network
-    await Future.delayed(const Duration(milliseconds: 120));
-    return List<Product>.from(_products);
-  }
-
-  Future<void> addProduct(Product p) async {
-    _products.insert(0, p);
-    await Future.delayed(const Duration(milliseconds: 50));
-  }
-
-  Future<void> updateProduct(Product p) async {
-    final idx = _products.indexWhere((x) => x.id == p.id);
-    if (idx >= 0) _products[idx] = p;
-    await Future.delayed(const Duration(milliseconds: 50));
-  }
-
-  Future<void> deleteProduct(String id) async {
-    _products.removeWhere((x) => x.id == id);
-    await Future.delayed(const Duration(milliseconds: 50));
-  }
-
-  Product? getById(String id) => _products.firstWhere(
-    (p) => p.id == id,
-    orElse: () => throw Exception('Not found'),
-  );
-}
-
 // ----------------------------- Page -----------------------------
 class PharmacyProductsPage extends StatefulWidget {
   const PharmacyProductsPage({super.key});
@@ -148,8 +27,6 @@ class PharmacyProductsPage extends StatefulWidget {
 }
 
 class _PharmacyProductsPageState extends State<PharmacyProductsPage> {
-  final ProductService _service = ProductService();
-  List<Product> _products = [];
   String _search = '';
   String _filter = 'All products';
   int _rowsPerPage = 10;
@@ -162,61 +39,51 @@ class _PharmacyProductsPageState extends State<PharmacyProductsPage> {
   @override
   void initState() {
     super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final data = await _service.getProducts();
-    setState(() => _products = data);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final productProvider = Provider.of<ProductProvider>(
+        context,
+        listen: false,
+      );
+      productProvider.loadProducts();
+    });
   }
 
   List<Product> get _filtered {
-    var list = _products.where((p) {
+    final products = Provider.of<ProductProvider>(context).products;
+    var list = products.where((p) {
       final q = _search.toLowerCase();
       if (q.isNotEmpty &&
           !(p.name.toLowerCase().contains(q) ||
               p.category.toLowerCase().contains(q))) {
         return false;
       }
-      if (_filter == 'Low stock' && p.totalStock > p.lowStockThreshold) {
+      if (_filter == 'Low stock' && p.availableStock > p.lowStockThreshold) {
         return false;
       }
-      if (_filter == 'Expired' &&
-          !p.lots.any((l) => l.status == LotStatus.expired)) {
-        return false;
-      }
-      if (_filter == 'Near expiration' &&
-          !p.lots.any((l) => l.status == LotStatus.nearExpiration)) {
-        return false;
-      }
-      if (_filter == 'Prescription required' && !p.prescriptionRequired) {
+      if (_filter == 'Out of stock' && p.availableStock > 0) {
         return false;
       }
       return true;
     }).toList();
 
+    // Sort
     list.sort((a, b) {
-      int cmp = 0;
+      int result = 0;
       switch (_sortColumn) {
         case 'name':
-          cmp = a.name.compareTo(b.name);
+          result = a.name.compareTo(b.name);
           break;
         case 'category':
-          cmp = a.category.compareTo(b.category);
-          break;
-        case 'purchase':
-          cmp = a.purchasePrice.compareTo(b.purchasePrice);
-          break;
-        case 'selling':
-          cmp = a.sellingPrice.compareTo(b.sellingPrice);
+          result = a.category.compareTo(b.category);
           break;
         case 'stock':
-          cmp = a.totalStock.compareTo(b.totalStock);
+          result = a.availableStock.compareTo(b.availableStock);
           break;
-        default:
-          cmp = a.name.compareTo(b.name);
+        case 'price':
+          result = a.sellingPrice.compareTo(b.sellingPrice);
+          break;
       }
-      return _sortAscending ? cmp : -cmp;
+      return _sortAscending ? result : -result;
     });
 
     return list;
@@ -239,8 +106,12 @@ class _PharmacyProductsPageState extends State<PharmacyProductsPage> {
       builder: (_) => ProductFormDialog(),
     );
     if (created != null) {
-      await _service.addProduct(created);
-      await _load();
+      final productProvider = Provider.of<ProductProvider>(
+        // ignore: use_build_context_synchronously
+        context,
+        listen: false,
+      );
+      await productProvider.addProduct(created);
     }
   }
 
@@ -303,8 +174,12 @@ class _PharmacyProductsPageState extends State<PharmacyProductsPage> {
                           builder: (_) => ProductFormDialog(product: p),
                         );
                         if (updated != null) {
-                          await _service.updateProduct(updated);
-                          await _load();
+                          final productProvider = Provider.of<ProductProvider>(
+                            // ignore: use_build_context_synchronously
+                            context,
+                            listen: false,
+                          );
+                          await productProvider.updateProduct(updated);
                         }
                       },
                       onDelete: (p) async {
@@ -326,8 +201,12 @@ class _PharmacyProductsPageState extends State<PharmacyProductsPage> {
                           ),
                         );
                         if (ok == true) {
-                          await _service.deleteProduct(p.id);
-                          await _load();
+                          final productProvider = Provider.of<ProductProvider>(
+                            // ignore: use_build_context_synchronously
+                            context,
+                            listen: false,
+                          );
+                          await productProvider.deleteProduct(p.id);
                         }
                       },
                     ),
@@ -338,12 +217,12 @@ class _PharmacyProductsPageState extends State<PharmacyProductsPage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      /*floatingActionButton: FloatingActionButton.extended(
         onPressed: _openAddDialog,
         label: const Text('Add New Product'),
         icon: const Icon(Icons.add),
         backgroundColor: kPrimaryGreen,
-      ),
+      ),*/
     );
   }
 
@@ -608,18 +487,18 @@ class _ProductTableState extends State<ProductTable> {
     return p.lots.first.expiration;
   }
 
-  ProductStatus _productStatus(Product p) {
+  StockStatus _productStatus(Product p) {
     if (p.lots.any((l) => l.status == LotStatus.expired)) {
-      return ProductStatus.expired;
+      return StockStatus.outOfStock;
     }
-    if (p.totalStock <= p.lowStockThreshold) return ProductStatus.lowStock;
-    return ProductStatus.available;
+    if (p.totalStock <= p.lowStockThreshold) return StockStatus.lowStock;
+    return StockStatus.available;
   }
 }
 
 // ----------------------------- Status Badge -----------------------------
 class StatusBadge extends StatelessWidget {
-  final ProductStatus status;
+  final StockStatus status;
 
   const StatusBadge({super.key, required this.status});
 
@@ -628,17 +507,17 @@ class StatusBadge extends StatelessWidget {
     Color color;
     String label;
     switch (status) {
-      case ProductStatus.available:
+      case StockStatus.available:
         color = kPrimaryGreen;
         label = 'Available';
         break;
-      case ProductStatus.lowStock:
+      case StockStatus.lowStock:
         color = kWarningOrange;
         label = 'Low Stock';
         break;
-      case ProductStatus.expired:
+      case StockStatus.outOfStock:
         color = kDangerRed;
-        label = 'Expired';
+        label = 'Out of Stock';
         break;
     }
     return Container(
@@ -956,8 +835,11 @@ class _ProductFormDialogState extends State<ProductFormDialog> {
     return [
       Lot(
         lotNumber: _lotNumberController.text.trim(),
+        manufacturingDate: DateTime.now(),
+        expirationDate: exp,
         quantity: qty,
-        expiration: exp,
+        quantityAvailable: qty,
+        costPrice: double.tryParse(_purchaseController.text) ?? 0.0,
       ),
     ];
   }

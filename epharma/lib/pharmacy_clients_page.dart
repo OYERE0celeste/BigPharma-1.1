@@ -89,103 +89,7 @@ enum LoyaltyStatus { standard, regular, vip }
 // =====================================================================
 
 class ClientService {
-  static final List<Client> _mockClients = [
-    Client(
-      id: '001',
-      fullName: 'Marie Dupont',
-      phone: '+33 6 12 34 56 78',
-      email: 'marie.dupont@email.com',
-      address: '123 Rue de la Paix, 75000 Paris',
-      dateOfBirth: DateTime(1985, 3, 15),
-      gender: 'Femme',
-      registrationDate: DateTime(2023, 1, 10),
-      totalPurchases: 24,
-      totalSpent: 3240.50,
-      lastVisitDate: DateTime.now().subtract(const Duration(days: 2)),
-      loyaltyStatus: LoyaltyStatus.vip,
-      hasMedicalProfile: true,
-      allergies: 'Pénicilline, Aspirine',
-      chronicConditions: 'Hypertension, Diabète type 2',
-      currentTreatments: 'Metformine 500mg, Lisinopril 10mg',
-      pharmacistNotes: 'Patiente assez compliquée. Suivi régulier recommandé.',
-    ),
-    Client(
-      id: '002',
-      fullName: 'Jean Bernard',
-      phone: '+33 6 98 76 54 32',
-      email: 'jean.bernard@email.com',
-      address: '456 Avenue Principale, 75001 Paris',
-      dateOfBirth: DateTime(1972, 7, 22),
-      gender: 'Homme',
-      registrationDate: DateTime(2022, 6, 15),
-      totalPurchases: 156,
-      totalSpent: 8920.00,
-      lastVisitDate: DateTime.now().subtract(const Duration(days: 1)),
-      loyaltyStatus: LoyaltyStatus.vip,
-      hasMedicalProfile: true,
-      allergies: 'Aucune connue',
-      chronicConditions: 'Cholestérol élevé',
-      currentTreatments: 'Atorvastatine 20mg',
-      pharmacistNotes: 'Très régulier, excellent client.',
-    ),
-    Client(
-      id: '003',
-      fullName: 'Sophie Martin',
-      phone: '+33 7 11 22 33 44',
-      email: 'sophie.martin@email.com',
-      address: '789 Boulevard Saint-Germain, 75005 Paris',
-      dateOfBirth: DateTime(1990, 11, 8),
-      gender: 'Femme',
-      registrationDate: DateTime(2023, 3, 20),
-      totalPurchases: 18,
-      totalSpent: 1850.25,
-      lastVisitDate: DateTime.now().subtract(const Duration(days: 5)),
-      loyaltyStatus: LoyaltyStatus.regular,
-      hasMedicalProfile: true,
-      allergies: 'Sulfonamides',
-      chronicConditions: 'Asthme léger',
-      currentTreatments: 'Salbutamol (au besoin)',
-      pharmacistNotes: 'Client sympathique, demande souvent conseil.',
-    ),
-    Client(
-      id: '004',
-      fullName: 'Pierre Leclerc',
-      phone: '+33 6 55 66 77 88',
-      email: 'pierre.leclerc@email.com',
-      address: '321 Rue de Rivoli, 75004 Paris',
-      dateOfBirth: DateTime(1968, 1, 30),
-      gender: 'Homme',
-      registrationDate: DateTime(2021, 9, 5),
-      totalPurchases: 89,
-      totalSpent: 5420.75,
-      lastVisitDate: DateTime.now().subtract(const Duration(days: 8)),
-      loyaltyStatus: LoyaltyStatus.regular,
-      hasMedicalProfile: false,
-      allergies: '',
-      chronicConditions: '',
-      currentTreatments: '',
-      pharmacistNotes: '',
-    ),
-    Client(
-      id: '005',
-      fullName: 'Isabelle Rousseau',
-      phone: '+33 7 44 55 66 77',
-      email: 'isabelle.r@email.com',
-      address: '654 Rue de la République, 75011 Paris',
-      dateOfBirth: DateTime(1995, 5, 12),
-      gender: 'Femme',
-      registrationDate: DateTime(2024, 1, 22),
-      totalPurchases: 5,
-      totalSpent: 420.50,
-      lastVisitDate: DateTime.now().subtract(const Duration(days: 15)),
-      loyaltyStatus: LoyaltyStatus.standard,
-      hasMedicalProfile: false,
-      allergies: '',
-      chronicConditions: '',
-      currentTreatments: '',
-      pharmacistNotes: '',
-    ),
-  ];
+  static final List<Client> _mockClients = [];
 
   static List<Client> getAllClients() => _mockClients;
 
@@ -218,48 +122,11 @@ class ClientService {
   }
 
   static List<Purchase> getClientPurchases(String clientId) {
-    return [
-      Purchase(
-        invoiceNumber: 'INV-2024-001',
-        date: DateTime(2024, 2, 10),
-        products: ['Doliprane 500mg', 'Vitamine D3'],
-        totalAmount: 24.99,
-        paymentMethod: 'Carte',
-      ),
-      Purchase(
-        invoiceNumber: 'INV-2024-002',
-        date: DateTime(2024, 2, 5),
-        products: ['Aspegic', 'Mercurochrome'],
-        totalAmount: 15.50,
-        paymentMethod: 'Espèces',
-      ),
-      Purchase(
-        invoiceNumber: 'INV-2024-003',
-        date: DateTime(2024, 1, 28),
-        products: ['Imodium', 'Gaviscon'],
-        totalAmount: 18.75,
-        paymentMethod: 'Carte',
-      ),
-    ];
+    return [];
   }
 
   static List<Prescription> getClientPrescriptions(String clientId) {
-    return [
-      Prescription(
-        id: 'RX-001',
-        medicationName: 'Amoxicilline 500mg',
-        validationDate: DateTime.now().subtract(const Duration(days: 5)),
-        status: 'Validée',
-        quantity: 30,
-      ),
-      Prescription(
-        id: 'RX-002',
-        medicationName: 'Métformine 850mg',
-        validationDate: DateTime.now().subtract(const Duration(days: 30)),
-        status: 'Validée',
-        quantity: 60,
-      ),
-    ];
+    return [];
   }
 }
 
@@ -368,7 +235,7 @@ class _PharmacyClientsPageState extends State<PharmacyClientsPage> {
                       },
                     ),
                     const SizedBox(height: 20),
-                    const QuickActionsSection(),
+                    //const QuickActionsSection(),
                   ],
                 ),
               ),
@@ -505,7 +372,7 @@ class _SearchAndFilterSectionState extends State<SearchAndFilterSection> {
                 borderRadius: BorderRadius.circular(8),
               ),
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
+                horizontal: 10,
                 vertical: 12,
               ),
             ),
@@ -532,16 +399,54 @@ class _SearchAndFilterSectionState extends State<SearchAndFilterSection> {
         ),
         const SizedBox(width: 12),
         Tooltip(
-          message: 'Add New Client',
-          child: ElevatedButton.icon(
+          message: 'Ajouter un nouveau client',
+          child: ElevatedButton(
             onPressed: widget.onAddClient,
-            icon: const Icon(Icons.add),
-            label: const Text('Add Client'),
             style: ElevatedButton.styleFrom(
               backgroundColor: kPrimaryGreen,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
+            child: const Icon(Icons.add),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Tooltip(
+          message: 'Exporter la liste des clients',
+          child: ElevatedButton(
+            onPressed: widget.onAddClient,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: kPrimaryGreen,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            child: const Icon(Icons.download),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Tooltip(
+          message: 'Top Clients',
+          child: ElevatedButton(
+            onPressed: widget.onAddClient,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: kPrimaryGreen,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            child: const Icon(Icons.trending_up),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Tooltip(
+          message: 'Imprimer la liste des clients',
+          child: ElevatedButton(
+            onPressed: widget.onAddClient,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: kPrimaryGreen,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            child: const Icon(Icons.print),
           ),
         ),
       ],
@@ -1486,7 +1391,7 @@ class _ClientFormDialogState extends State<ClientFormDialog> {
 // SECTION 5: QUICK ACTIONS
 // =====================================================================
 
-class QuickActionsSection extends StatelessWidget {
+/*class QuickActionsSection extends StatelessWidget {
   const QuickActionsSection({super.key});
 
   @override
@@ -1587,4 +1492,4 @@ class QuickActionButton extends StatelessWidget {
       ),
     );
   }
-}
+}*/

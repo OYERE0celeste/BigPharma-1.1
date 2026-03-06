@@ -74,9 +74,9 @@ class AppSidebar extends StatelessWidget {
                 ),
                 AppSidebarItem(
                   icon: Icons.report,
-                  label: 'Reports',
-                  selected: selectedLabel == 'Reports',
-                  onTap: callbacks?['Reports'],
+                  label: 'Finances',
+                  selected: selectedLabel == 'Finances',
+                  onTap: callbacks?['Finances'],
                 ),
                 const SizedBox(height: 24),
               ],

@@ -1,67 +1,45 @@
 import 'package:flutter/material.dart';
-import 'pharmacy_products_page.dart';
-import 'pharmacy_sales_page.dart';
-import 'pharmacy_clients_page.dart';
-import 'pharmacy_activity_register_page.dart';
-import 'app_sidebar.dart';
+import 'package:provider/provider.dart';
+import 'main_layout.dart';
 import 'app_colors.dart';
-
-// Pharmacy Dashboard Page
-// - Material 3 friendly
-// - Reusable widgets: KPI Card, Alert Tile, Activity Tile, Quick Action Button
-// - Dummy static data
-
-// colors are in app_colors.dart
+import 'providers/product_provider.dart';
+import 'providers/sales_provider.dart';
+import 'providers/finance_provider.dart';
 
 class PharmacyDashboardPage extends StatelessWidget {
   const PharmacyDashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Row(
-        children: [
-          AppSidebar(
-            selectedLabel: 'Dashboard',
-            callbacks: {
-              'Stock': () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PharmacyProductsPage()),
-              ),
-              'Sales': () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PharmacySalesPage()),
-              ),
-              'Clients': () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PharmacyClientsPage()),
-              ),
-              'Activity': () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const PharmacyActivityRegisterPage(),
-                ),
-              ),
-            },
-          ),
-          Expanded(
-            child: SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: const [
-                    TopKPISection(),
-                    SizedBox(height: 20),
-                    AlertsAndActivityRow(),
-                    SizedBox(height: 20),
-                    QuickActionsSection(),
-                    SizedBox(height: 20),
-                    StockAndPerformanceRow(),
-                    SizedBox(height: 20),
-                    SystemInfoBar(),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
+    return MainLayout(
+      pageTitle: 'Dashboard',
+      child: const DashboardPageContent(),
+    );
+  }
+}
+
+class DashboardPageContent extends StatelessWidget {
+  const DashboardPageContent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: const [
+            TopKPISection(),
+            SizedBox(height: 20),
+            AlertsAndActivityRow(),
+            SizedBox(height: 20),
+            QuickActionsSection(),
+            SizedBox(height: 20),
+            StockAndPerformanceRow(),
+            SizedBox(height: 20),
+            SystemInfoBar(),
+          ],
+        ),
       ),
     );
   }
@@ -75,76 +53,81 @@ class TopKPISection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final kpis = [
-      KPIData(
-        title: "Today's revenue",
-        value: '€3,420',
-        icon: Icons.attach_money,
-        color: kPrimaryGreen,
-      ),
-      KPIData(
-        title: 'Sales today',
-        value: '128',
-        icon: Icons.shopping_cart,
-        color: kAccentBlue,
-      ),
-      KPIData(
-        title: 'Out of stock',
-        value: '12',
-        icon: Icons.warning,
-        color: kDangerRed,
-      ),
-      KPIData(
-        title: 'Near expiration',
-        value: '8',
-        icon: Icons.timer,
-        color: kWarningOrange,
-      ),
-      KPIData(
-        title: 'Prescriptions pending',
-        value: '5',
-        icon: Icons.pending_actions,
-        color: Colors.purple,
-      ),
-      KPIData(
-        title: 'Orders to ship',
-        value: '3',
-        icon: Icons.local_shipping,
-        color: Colors.teal,
-      ),
-    ];
+    return Consumer3<ProductProvider, SalesProvider, FinanceProvider>(
+      builder:
+          (context, productProvider, salesProvider, financeProvider, child) {
+            final kpis = [
+              KPIData(
+                title: "Today's revenue",
+                value: '€${financeProvider.totalRevenue.toStringAsFixed(2)}',
+                icon: Icons.attach_money,
+                color: kPrimaryGreen,
+              ),
+              KPIData(
+                title: 'Sales today',
+                value: '${salesProvider.totalSalesCount}',
+                icon: Icons.shopping_cart,
+                color: kAccentBlue,
+              ),
+              KPIData(
+                title: 'Out of stock',
+                value: '${productProvider.outOfStockCount}',
+                icon: Icons.warning,
+                color: kDangerRed,
+              ),
+              KPIData(
+                title: 'Low stock',
+                value: '${productProvider.lowStockCount}',
+                icon: Icons.warning_amber,
+                color: kWarningOrange,
+              ),
+              KPIData(
+                title: 'Total products',
+                value: '${productProvider.totalProducts}',
+                icon: Icons.inventory,
+                color: Colors.purple,
+              ),
+              KPIData(
+                title: 'Net profit',
+                value: '€${financeProvider.netProfit.toStringAsFixed(2)}',
+                icon: Icons.trending_up,
+                color: Colors.teal,
+              ),
+            ];
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        int crossAxisCount = 3;
-        if (width < 800) crossAxisCount = 1;
-        if (width >= 800 && width < 1200) crossAxisCount = 2;
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                int crossAxisCount = 3;
+                if (width < 800) crossAxisCount = 1;
+                if (width >= 800 && width < 1200) crossAxisCount = 2;
 
-        return GridView.builder(
-          shrinkWrap: true,
-          itemCount: kpis.length,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 3,
-          ),
-          itemBuilder: (context, index) {
-            final item = kpis[index];
-            return KPICard(
-              title: item.title,
-              value: item.value,
-              icon: item.icon,
-              color: item.color,
-              onTap: () {
-                // navigate to details
+                return GridView.builder(
+                  shrinkWrap: true,
+                  itemCount: kpis.length,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 3,
+                  ),
+                  itemBuilder: (context, index) {
+                    final item = kpis[index];
+                    return KPICard(
+                      title: item.title,
+                      value: item.value,
+                      icon: item.icon,
+                      color: item.color,
+                      onTap: () {
+                        // navigate to details
+                      },
+                    );
+                  },
+                );
               },
             );
           },
-        );
-      },
     );
   }
 }
@@ -274,22 +257,22 @@ class AlertsPanel extends StatelessWidget {
     final alerts = [
       AlertData(
         title: 'Expired medicines',
-        count: 4,
+        count: 0,
         severity: AlertSeverity.critical,
       ),
       AlertData(
         title: 'Critical stock',
-        count: 3,
+        count: 0,
         severity: AlertSeverity.critical,
       ),
       AlertData(
         title: 'Rejected prescriptions',
-        count: 2,
+        count: 0,
         severity: AlertSeverity.warning,
       ),
       AlertData(
         title: 'Failed payments',
-        count: 1,
+        count: 0,
         severity: AlertSeverity.warning,
       ),
       AlertData(
@@ -396,33 +379,7 @@ class RecentActivityPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activities = [
-      ActivityData(
-        title: 'Sale #987',
-        subtitle: '€42.20 - Cash',
-        time: '10:15',
-      ),
-      ActivityData(
-        title: 'New client: John Doe',
-        subtitle: 'Card created',
-        time: '09:50',
-      ),
-      ActivityData(
-        title: 'Prescription #452 validated',
-        subtitle: 'Dr. Smith',
-        time: '09:20',
-      ),
-      ActivityData(
-        title: 'Added new product: Ibuprofen 200mg',
-        subtitle: 'Stock: 120',
-        time: '08:45',
-      ),
-      ActivityData(
-        title: 'Sale #986',
-        subtitle: '€12.00 - Card',
-        time: '08:30',
-      ),
-    ];
+    final activities = [];
 
     return Card(
       elevation: 2,
@@ -677,19 +634,9 @@ class StockSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bestSelling = [
-      'Paracetamol 500mg - 320 sold',
-      'Amoxicillin 250mg - 210 sold',
-      'Ibuprofen 200mg - 190 sold',
-      'Cetirizine 10mg - 140 sold',
-      'Omeprazole 20mg - 120 sold',
-    ];
+    final bestSelling = [];
 
-    final lowStock = [
-      'Metformin - 5 left',
-      'Simvastatin - 3 left',
-      'Loratadine - 2 left',
-    ];
+    final lowStock = [];
 
     return Card(
       elevation: 2,
@@ -798,13 +745,10 @@ class PerformanceSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: const [
                 Text(
-                  'Today: €3,420',
+                  'Today: €0',
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
-                Text(
-                  'Week: €18,340',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
+                Text('Week: €0', style: TextStyle(fontWeight: FontWeight.w600)),
               ],
             ),
           ],

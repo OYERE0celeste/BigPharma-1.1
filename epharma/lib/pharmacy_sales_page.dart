@@ -1,4 +1,6 @@
+import 'models/activity_model.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'app_sidebar.dart';
 import 'app_colors.dart';
 import 'package:intl/intl.dart';
@@ -6,363 +8,10 @@ import 'pharmacy_dashboard_page.dart';
 import 'pharmacy_products_page.dart';
 import 'pharmacy_clients_page.dart';
 import 'pharmacy_activity_register_page.dart';
-
-// ============================================================================
-// MODELS
-// ============================================================================
-
-class Product {
-  final String id;
-  final String name;
-  final String category;
-  final double sellingPrice;
-  final int totalStock;
-  final bool prescriptionRequired;
-  final List<Lot> lots;
-
-  Product({
-    required this.id,
-    required this.name,
-    required this.category,
-    required this.sellingPrice,
-    required this.totalStock,
-    required this.prescriptionRequired,
-    required this.lots,
-  });
-
-  int getAvailableStock() =>
-      lots.fold(0, (sum, lot) => sum + lot.quantityAvailable);
-
-  Lot? getNearestExpirationLot() {
-    if (lots.isEmpty) return null;
-    final availableLots = lots.where((l) => l.quantityAvailable > 0).toList();
-    if (availableLots.isEmpty) return null;
-    availableLots.sort((a, b) => a.expirationDate.compareTo(b.expirationDate));
-    return availableLots.first;
-  }
-
-  StockStatus getStockStatus() {
-    final available = getAvailableStock();
-    if (available == 0) return StockStatus.outOfStock;
-    if (available < 5) return StockStatus.lowStock;
-    return StockStatus.available;
-  }
-}
-
-class Lot {
-  final String lotNumber;
-  final DateTime manufacturingDate;
-  final DateTime expirationDate;
-  final int quantityAvailable;
-  final double costPrice;
-
-  Lot({
-    required this.lotNumber,
-    required this.manufacturingDate,
-    required this.expirationDate,
-    required this.quantityAvailable,
-    required this.costPrice,
-  });
-}
-
-class CartItem {
-  final Product product;
-  final Lot selectedLot;
-  int quantity;
-
-  CartItem({
-    required this.product,
-    required this.selectedLot,
-    required this.quantity,
-  });
-
-  double getSubtotal() => product.sellingPrice * quantity;
-}
-
-class Sale {
-  final String invoiceNumber;
-  final DateTime dateTime;
-  final List<CartItem> items;
-  final double subtotal;
-  final double discountAmount;
-  final double taxAmount;
-  final double totalAmount;
-  final String paymentMethod;
-  final double amountReceived;
-  final double changeAmount;
-  final String pharmacistName;
-  final bool prescriptionVerified;
-
-  Sale({
-    required this.invoiceNumber,
-    required this.dateTime,
-    required this.items,
-    required this.subtotal,
-    required this.discountAmount,
-    required this.taxAmount,
-    required this.totalAmount,
-    required this.paymentMethod,
-    required this.amountReceived,
-    required this.changeAmount,
-    required this.pharmacistName,
-    required this.prescriptionVerified,
-  });
-}
-
-enum StockStatus { available, lowStock, outOfStock }
-
-enum PaymentMethod { cash, card, mobileMoney }
-
-// ============================================================================
-// MOCK DATA SERVICE
-// ============================================================================
-
-class SalesService {
-  static final SalesService _instance = SalesService._internal();
-
-  factory SalesService() {
-    return _instance;
-  }
-
-  SalesService._internal();
-
-  List<Product>? _mockProducts;
-  final List<Sale> _salesHistory = [];
-  int _saleCounter = 1000;
-
-  List<Product> getMockProducts() {
-    if (_mockProducts == null || _mockProducts!.isEmpty) {
-      _mockProducts = [
-        Product(
-          id: 'P001',
-          name: 'Amoxicillin 500mg',
-          category: 'Antibiotics',
-          sellingPrice: 5.50,
-          totalStock: 150,
-          prescriptionRequired: true,
-          lots: [
-            Lot(
-              lotNumber: 'LOT-2024-001',
-              manufacturingDate: DateTime(2023, 1, 15),
-              expirationDate: DateTime(2026, 1, 15),
-              quantityAvailable: 150,
-              costPrice: 2.00,
-            ),
-          ],
-        ),
-        Product(
-          id: 'P002',
-          name: 'Paracetamol 500mg',
-          category: 'Pain Relief',
-          sellingPrice: 2.00,
-          totalStock: 200,
-          prescriptionRequired: false,
-          lots: [
-            Lot(
-              lotNumber: 'LOT-2024-002',
-              manufacturingDate: DateTime(2024, 3, 20),
-              expirationDate: DateTime(2027, 3, 20),
-              quantityAvailable: 200,
-              costPrice: 0.75,
-            ),
-          ],
-        ),
-        Product(
-          id: 'P003',
-          name: 'Ibuprofen 400mg',
-          category: 'Pain Relief',
-          sellingPrice: 3.25,
-          totalStock: 80,
-          prescriptionRequired: false,
-          lots: [
-            Lot(
-              lotNumber: 'LOT-2024-003',
-              manufacturingDate: DateTime(2024, 2, 10),
-              expirationDate: DateTime(2027, 2, 10),
-              quantityAvailable: 45,
-              costPrice: 1.20,
-            ),
-            Lot(
-              lotNumber: 'LOT-2024-004',
-              manufacturingDate: DateTime(2024, 4, 5),
-              expirationDate: DateTime(2027, 4, 5),
-              quantityAvailable: 35,
-              costPrice: 1.20,
-            ),
-          ],
-        ),
-        Product(
-          id: 'P004',
-          name: 'Metformin 1000mg',
-          category: 'Diabetes',
-          sellingPrice: 8.00,
-          totalStock: 120,
-          prescriptionRequired: true,
-          lots: [
-            Lot(
-              lotNumber: 'LOT-2024-005',
-              manufacturingDate: DateTime(2023, 6, 1),
-              expirationDate: DateTime(2026, 6, 1),
-              quantityAvailable: 120,
-              costPrice: 3.50,
-            ),
-          ],
-        ),
-        Product(
-          id: 'P005',
-          name: 'Omeprazole 20mg',
-          category: 'Digestive',
-          sellingPrice: 6.50,
-          totalStock: 3,
-          prescriptionRequired: true,
-          lots: [
-            Lot(
-              lotNumber: 'LOT-2024-006',
-              manufacturingDate: DateTime(2024, 1, 20),
-              expirationDate: DateTime(2027, 1, 20),
-              quantityAvailable: 3,
-              costPrice: 2.00,
-            ),
-          ],
-        ),
-        Product(
-          id: 'P006',
-          name: 'Vitamin C 1000mg',
-          category: 'Vitamins',
-          sellingPrice: 4.00,
-          totalStock: 0,
-          prescriptionRequired: false,
-          lots: [
-            Lot(
-              lotNumber: 'LOT-2023-001',
-              manufacturingDate: DateTime(2022, 5, 1),
-              expirationDate: DateTime(2025, 5, 1),
-              quantityAvailable: 0,
-              costPrice: 1.50,
-            ),
-          ],
-        ),
-        Product(
-          id: 'P007',
-          name: 'Lisinopril 10mg',
-          category: 'Cardiovascular',
-          sellingPrice: 7.75,
-          totalStock: 95,
-          prescriptionRequired: true,
-          lots: [
-            Lot(
-              lotNumber: 'LOT-2024-007',
-              manufacturingDate: DateTime(2023, 8, 15),
-              expirationDate: DateTime(2026, 8, 15),
-              quantityAvailable: 95,
-              costPrice: 3.00,
-            ),
-          ],
-        ),
-        Product(
-          id: 'P008',
-          name: 'Cetirizine 10mg',
-          category: 'Allergy',
-          sellingPrice: 3.50,
-          totalStock: 200,
-          prescriptionRequired: false,
-          lots: [
-            Lot(
-              lotNumber: 'LOT-2024-008',
-              manufacturingDate: DateTime(2024, 4, 1),
-              expirationDate: DateTime(2027, 4, 1),
-              quantityAvailable: 200,
-              costPrice: 1.00,
-            ),
-          ],
-        ),
-        Product(
-          id: 'P009',
-          name: 'Aspirin 500mg',
-          category: 'Pain Relief',
-          sellingPrice: 1.75,
-          totalStock: 350,
-          prescriptionRequired: false,
-          lots: [
-            Lot(
-              lotNumber: 'LOT-2024-009',
-              manufacturingDate: DateTime(2024, 2, 28),
-              expirationDate: DateTime(2027, 2, 28),
-              quantityAvailable: 350,
-              costPrice: 0.50,
-            ),
-          ],
-        ),
-        Product(
-          id: 'P010',
-          name: 'Azithromycin 500mg',
-          category: 'Antibiotics',
-          sellingPrice: 9.50,
-          totalStock: 60,
-          prescriptionRequired: true,
-          lots: [
-            Lot(
-              lotNumber: 'LOT-2024-010',
-              manufacturingDate: DateTime(2023, 12, 1),
-              expirationDate: DateTime(2026, 12, 1),
-              quantityAvailable: 60,
-              costPrice: 4.00,
-            ),
-          ],
-        ),
-      ];
-    }
-    return _mockProducts!;
-  }
-
-  Sale createSale({
-    required List<CartItem> items,
-    required double discountAmount,
-    required double taxAmount,
-    required String paymentMethod,
-    required double amountReceived,
-    required bool prescriptionVerified,
-  }) {
-    final invoiceNumber = 'INV-${DateTime.now().year}-${_saleCounter++}';
-    final subtotal = items.fold(0.0, (sum, item) => sum + item.getSubtotal());
-    final total = subtotal - discountAmount + taxAmount;
-    final changeAmount = amountReceived - total;
-
-    final sale = Sale(
-      invoiceNumber: invoiceNumber,
-      dateTime: DateTime.now(),
-      items: items,
-      subtotal: subtotal,
-      discountAmount: discountAmount,
-      taxAmount: taxAmount,
-      totalAmount: total,
-      paymentMethod: paymentMethod,
-      amountReceived: amountReceived,
-      changeAmount: changeAmount,
-      pharmacistName: 'Pharmacist John Doe',
-      prescriptionVerified: prescriptionVerified,
-    );
-
-    _salesHistory.add(sale);
-    return sale;
-  }
-
-  List<Sale> getSalesHistory() => _salesHistory;
-
-  List<Sale> filterSalesByDate(DateTime startDate, DateTime endDate) {
-    return _salesHistory
-        .where(
-          (sale) =>
-              sale.dateTime.isAfter(startDate) &&
-              sale.dateTime.isBefore(endDate.add(const Duration(days: 1))),
-        )
-        .toList();
-  }
-
-  List<Sale> filterSalesByPaymentMethod(String method) {
-    return _salesHistory.where((sale) => sale.paymentMethod == method).toList();
-  }
-}
+import 'providers/sales_provider.dart';
+import 'providers/product_provider.dart';
+import 'models/product_model.dart';
+import 'models/sale_model.dart';
 
 // ============================================================================
 // REUSABLE COMPONENTS
@@ -382,8 +31,8 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final status = product.getStockStatus();
-    final availableStock = product.getAvailableStock();
+    final status = product.stockStatus;
+    final availableStock = product.availableStock;
 
     return Card(
       elevation: isSelected ? 8 : 2,
@@ -589,7 +238,7 @@ class CartItemTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '\$${cartItem.getSubtotal().toStringAsFixed(2)}',
+                    '\$${cartItem.subtotal.toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
@@ -1155,7 +804,6 @@ class PharmacySalesPage extends StatefulWidget {
 }
 
 class _PharmacySalesPageState extends State<PharmacySalesPage> {
-  late SalesService _salesService;
   late List<Product> _allProducts;
   late List<Product> _filteredProducts;
   final List<CartItem> _cart = [];
@@ -1172,17 +820,25 @@ class _PharmacySalesPageState extends State<PharmacySalesPage> {
   bool get _hasPrescriptionRequiredItems =>
       _cart.any((item) => item.product.prescriptionRequired);
 
-  double get _cartSubtotal =>
-      _cart.fold(0, (sum, item) => sum + item.getSubtotal());
+  double get _cartSubtotal => _cart.fold(0, (sum, item) => sum + item.subtotal);
 
   @override
   void initState() {
     super.initState();
-    _salesService = SalesService();
-    _allProducts = _salesService.getMockProducts();
+    _allProducts = [];
     _filteredProducts = _allProducts;
     _searchController = TextEditingController();
     _filterController = TextEditingController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final productProvider = Provider.of<ProductProvider>(context);
+    final salesProvider = Provider.of<SalesProvider>(context);
+    _allProducts = productProvider.products;
+    _filteredProducts = _allProducts;
+    salesProvider.setProducts(_allProducts);
   }
 
   @override
@@ -1212,7 +868,7 @@ class _PharmacySalesPageState extends State<PharmacySalesPage> {
   }
 
   void _addProductToCart(Product product) {
-    if (product.getAvailableStock() == 0) {
+    if (product.availableStock == 0) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Product is out of stock')));
@@ -1232,7 +888,7 @@ class _PharmacySalesPageState extends State<PharmacySalesPage> {
       (item) => item.product.id == product.id,
       orElse: () => CartItem(
         product: product,
-        selectedLot: product.getNearestExpirationLot()!,
+        selectedLot: product.nearestExpirationLot!,
         quantity: 1,
       ),
     );
@@ -1265,6 +921,12 @@ class _PharmacySalesPageState extends State<PharmacySalesPage> {
   }
 
   void _confirmSale() {
+    final salesProvider = Provider.of<SalesProvider>(context, listen: false);
+    final productProvider = Provider.of<ProductProvider>(
+      context,
+      listen: false,
+    );
+
     // Validations
     if (_cart.isEmpty) {
       ScaffoldMessenger.of(
@@ -1289,8 +951,8 @@ class _PharmacySalesPageState extends State<PharmacySalesPage> {
       return;
     }
 
-    // Create sale
-    final sale = _salesService.createSale(
+    // Create sale via provider
+    final sale = salesProvider.createSale(
       items: List.from(_cart),
       discountAmount: _customDiscount,
       taxAmount: _customTax,
@@ -1298,6 +960,15 @@ class _PharmacySalesPageState extends State<PharmacySalesPage> {
       amountReceived: _amountReceived,
       prescriptionVerified: _prescriptionVerified,
     );
+
+    // Deduct stock
+    for (final item in _cart) {
+      productProvider.updateStock(
+        item.product.id,
+        item.selectedLot.lotNumber,
+        -item.quantity,
+      );
+    }
 
     // Clear cart and reset
     setState(() {
@@ -1702,7 +1373,9 @@ class _PharmacySalesPageState extends State<PharmacySalesPage> {
           ),
           const SizedBox(height: 20),
           Expanded(
-            child: SaleHistoryTable(sales: _salesService.getSalesHistory()),
+            child: SaleHistoryTable(
+              sales: Provider.of<SalesProvider>(context).sales,
+            ),
           ),
         ],
       ),

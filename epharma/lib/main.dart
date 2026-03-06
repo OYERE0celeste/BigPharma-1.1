@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'pharmacy_dashboard_page.dart';
 import 'pharmacy_sales_page.dart';
 import 'pharmacy_products_page.dart';
 import 'pharmacy_clients_page.dart';
 import 'pharmacy_activity_register_page.dart';
+import 'pharmacy_finance_page.dart';
+import 'providers/product_provider.dart';
+import 'providers/sales_provider.dart';
+import 'providers/activity_provider.dart';
+import 'providers/finance_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,35 +21,29 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'E-Pharma',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ProductProvider()),
+        ChangeNotifierProvider(create: (_) => SalesProvider()),
+        ChangeNotifierProvider(create: (_) => ActivityProvider()),
+        ChangeNotifierProvider(create: (_) => FinanceProvider()),
+      ],
+      child: MaterialApp(
+        title: 'E-Pharma',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+        ),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const PharmacyDashboardPage(),
+          '/products': (context) => const PharmacyProductsPage(),
+          '/sales': (context) => const PharmacySalesPage(),
+          '/clients': (context) => const PharmacyClientsPage(),
+          '/activity': (context) => const PharmacyActivityRegisterPage(),
+          '/finance': (context) => const PharmacyFinancePage(),
+        },
+        debugShowCheckedModeBanner: false,
       ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const PharmacyDashboardPage(),
-        '/products': (context) => const PharmacyProductsPage(),
-        '/sales': (context) => const PharmacySalesPage(),
-        '/clients': (context) => const PharmacyClientsPage(),
-        '/activity': (context) => const PharmacyActivityRegisterPage(),
-      },
-      debugShowCheckedModeBanner: false,
     );
   }
 }
